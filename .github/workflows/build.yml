@@ -84,12 +84,12 @@ jobs:
       - name: Check executable
         shell: pwsh
         run: |
-          if (!(Test-Path "build\Release\appTanaw.exe")) {
-              Write-Error "appTanaw.exe was not found!"
+          if (!(Test-Path "build\Release\Tanaw.exe")) {
+              Write-Error "Tanaw.exe was not found!"
               exit 1
           }
 
-          Write-Host "Found appTanaw.exe"
+          Write-Host "Found Tanaw.exe"
 
 
       # ----------------------------------------
@@ -107,7 +107,7 @@ jobs:
             --release `
             --qmldir . `
             --dir package `
-            "build\Release\appTanaw.exe"
+            "build\Release\Tanaw.exe"
 
 
       # ----------------------------------------
@@ -117,8 +117,8 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item `
-            "build\Release\appTanaw.exe" `
-            "package\appTanaw.exe"
+            "build\Release\Tanaw.exe" `
+            "package\Tanaw.exe"
 
       # ----------------------------------------
       # Upload artifact
