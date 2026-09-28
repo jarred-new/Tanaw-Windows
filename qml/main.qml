@@ -539,7 +539,7 @@ ApplicationWindow {
     Popup {
         id: toast
         property string message: ""
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.centerIn: parent.horizontalCenter
         y: parent.height - height - 28
         padding: 14
         background: Rectangle {
