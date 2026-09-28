@@ -1,0 +1,16 @@
+build/
+out/
+.qt/
+CMakeUserPresets.json
+*.user
+*.user.*
+*.suo
+*.vcxproj*
+*.vcxproj.filters
+*.opensdf
+*.sdf
+*.pdb
+*.ilk
+*.exe
+*.dll
+*.zip
