@@ -580,7 +580,8 @@ ApplicationWindow {
     Popup {
         id: toast
         property string message: ""
-        anchors.centerIn: parent.horizontalCenter
+        parent: Overlay.overlay
+        x: (parent.width - width) / 2
         y: parent.height - height - 28
         padding: 14
         background: Rectangle {
