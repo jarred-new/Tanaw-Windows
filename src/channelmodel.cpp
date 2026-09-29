@@ -112,7 +112,7 @@ Channel ChannelModel::channelAt(int row) const
     return m_channels.at(m_visibleRows.at(row));
 }
 
-QList<Channel> ChannelModel::channels() const
+const QList<Channel> &ChannelModel::channels() const
 {
     return m_channels;
 }

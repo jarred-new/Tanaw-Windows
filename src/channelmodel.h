@@ -38,7 +38,7 @@ public:
     void removeAt(int row);
     void toggleFavorite(int row);
     Channel channelAt(int row) const;
-    QList<Channel> channels() const;
+    const QList<Channel> &channels() const;
 
 signals:
     void filterTextChanged();

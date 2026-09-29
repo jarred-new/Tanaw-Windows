@@ -48,6 +48,7 @@ private:
     void setStatusText(const QString &text);
     void setLoading(bool loading);
     void downloadPlaylist(const QString &playlistUrl);
+    void parsePlaylistLine(const QString &line, QList<Channel> &channels, QString &pendingName, QString &pendingLogo) const;
     QList<Channel> parsePlaylist(const QByteArray &data, QString *error) const;
     QString parseAttribute(const QString &line, const QString &attribute) const;
 

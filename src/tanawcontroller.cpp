@@ -269,45 +269,93 @@ void TanawController::downloadPlaylist(const QString &playlistUrl)
     });
 }
 
-QList<Channel> TanawController::parsePlaylist(const QByteArray &data, QString *error) const
+void TanawController::parsePlaylistLine(const QString &line, QList<Channel> &channels, QString &pendingName, QString &pendingLogo) const
+{
+    if (line.startsWith(
+            QStringLiteral("#EXTINF"),
+            Qt::CaseInsensitive)) {
+
+        const int comma = line.indexOf(',');
+
+        pendingName =
+            comma >= 0
+                ? line.mid(comma + 1).trimmed()
+                : QStringLiteral("Unknown Channel");
+
+        if (pendingName.isEmpty()) {
+            pendingName = QStringLiteral("Unknown Channel");
+        }
+
+        pendingLogo = parseAttribute(
+            line,
+            QStringLiteral("tvg-logo"));
+
+        return;
+    }
+
+    if (line.startsWith('#')) {
+        return;
+    }
+
+    if (!pendingName.isEmpty()) {
+        channels.append(
+            Channel{
+                pendingName,
+                pendingLogo,
+                line,
+                false
+            });
+
+        pendingName.clear();
+        pendingLogo.clear();
+    }
+}
+
+QList<Channel> TanawController::parsePlaylist(
+    const QByteArray &data,
+    QString *error) const
 {
     QList<Channel> channels;
+
     QString pendingName;
     QString pendingLogo;
 
-    const QStringList lines = QString::fromUtf8(data).split(
-        QRegularExpression(QStringLiteral("\\r?\\n")));
-    for (QString line : lines) {
+    const QString text = QString::fromUtf8(data);
+
+    int start = 0;
+    const int size = text.size();
+
+    while (start < size) {
+        int end = text.indexOf('\n', start);
+
+        if (end < 0) {
+            end = size;
+        }
+
+        QString line = text.mid(start, end - start);
+
+        if (line.endsWith('\r')) {
+            line.chop(1);
+        }
+
         line = line.trimmed();
-        if (line.isEmpty()) {
-            continue;
+
+        if (!line.isEmpty()) {
+            parsePlaylistLine(
+                line,
+                channels,
+                pendingName,
+                pendingLogo);
         }
 
-        if (line.startsWith(QStringLiteral("#EXTINF"), Qt::CaseInsensitive)) {
-            const int comma = line.indexOf(',');
-            pendingName = comma >= 0
-                              ? line.mid(comma + 1).trimmed()
-                              : QStringLiteral("Unknown Channel");
-            if (pendingName.isEmpty()) {
-                pendingName = QStringLiteral("Unknown Channel");
-            }
-            pendingLogo = parseAttribute(line, QStringLiteral("tvg-logo"));
-            continue;
-        }
-
-        if (line.startsWith('#')) {
-            continue;
-        }
-
-        if (!pendingName.isEmpty()) {
-            channels.append(Channel{pendingName, pendingLogo, line, false});
-            pendingName.clear();
-            pendingLogo.clear();
-        }
+        start = end + 1;
     }
 
     if (channels.isEmpty()) {
-        *error = QStringLiteral("No channels were found in this M3U playlist");
+        if (error) {
+            *error = QStringLiteral(
+                "No channels were found in this M3U playlist");
+        }
     }
 
     return channels;

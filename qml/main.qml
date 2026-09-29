@@ -156,121 +156,163 @@ ApplicationWindow {
                     radius: 18
                     color: "#111c24"
 
-                    ScrollView {
-                        id: channelScroll
+                    GridView {
+                        id: channelGrid
+
                         anchors.fill: parent
                         anchors.margins: 16
+
                         clip: true
-                        ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-                        GridLayout {
-                            id: channelGrid
-                            width: channelScroll.availableWidth
-                            columns: Math.max(1, Math.floor(width / 280))
-                            rowSpacing: 14
-                            columnSpacing: 14
+                        cellWidth: 274
+                        cellHeight: 156
 
-                            Repeater {
-                                model: controller.channelModel
+                        model: controller.channelModel
 
-                                delegate: Rectangle {
-                                    required property int index
-                                    required property string name
-                                    required property string logo
-                                    required property string url
-                                    required property bool favorite
+                        boundsBehavior: Flickable.StopAtBounds
 
-                                    Layout.fillWidth: true
-                                    Layout.preferredWidth: 260
-                                    Layout.preferredHeight: 142
-                                    radius: 14
-                                    color: mouse.containsMouse ? "#263b48" : "#1a2a34"
-                                    border.width: favorite ? 2 : 1
-                                    border.color: favorite ? "#5ee7c6" : "#2d4654"
+                        cacheBuffer: 300
 
-                                    Behavior on color {
-                                        ColorAnimation { duration: 120 }
-                                    }
+                        delegate: Rectangle {
+                            required property int index
+                            required property string name
+                            required property string logo
+                            required property string url
+                            required property bool favorite
 
-                                    ColumnLayout {
-                                        anchors.fill: parent
-                                        anchors.margins: 16
-                                        spacing: 8
+                            width: 260
+                            height: 142
 
-                                        RowLayout {
-                                            Layout.fillWidth: true
-                                            spacing: 12
+                            radius: 14
 
-                                            Rectangle {
-                                                Layout.preferredWidth: 50
-                                                Layout.preferredHeight: 50
-                                                radius: 12
-                                                color: "#294454"
+                            color: mouse.containsMouse
+                                   ? "#263b48"
+                                   : "#1a2a34"
 
-                                                Image {
-                                                    anchors.fill: parent
-                                                    anchors.margins: 8
-                                                    source: logo
-                                                    fillMode: Image.PreserveAspectFit
-                                                    visible: status === Image.Ready
-                                                }
-                                                Label {
-                                                    anchors.centerIn: parent
-                                                    text: "TV"
-                                                    color: "#b9d4df"
-                                                    font.weight: Font.Bold
-                                                    visible: !parent.children[0].visible
-                                                }
-                                            }
+                            border.width: favorite ? 2 : 1
 
-                                            Label {
-                                                Layout.fillWidth: true
-                                                text: name
-                                                color: "#e7f4fb"
-                                                font.pixelSize: 16
-                                                font.weight: Font.DemiBold
-                                                elide: Text.ElideRight
-                                                maximumLineCount: 2
-                                                wrapMode: Text.Wrap
-                                            }
+                            border.color: favorite
+                                          ? "#5ee7c6"
+                                          : "#2d4654"
+
+                            Column {
+                                anchors.fill: parent
+                                anchors.margins: 16
+                                spacing: 8
+
+                                Row {
+                                    width: parent.width
+                                    height: 50
+
+                                    spacing: 12
+
+                                    Rectangle {
+                                        width: 50
+                                        height: 50
+
+                                        radius: 12
+
+                                        color: "#294454"
+
+                                        Image {
+                                            anchors.fill: parent
+                                            source: logo
+
+                                            sourceSize.width: 50
+                                            sourceSize.height: 50
+
+                                            asynchronous: true
+                                            cache: true
+
+                                            fillMode: Image.PreserveAspectFit
+
+                                            visible: status === Image.Ready
                                         }
 
                                         Label {
-                                            Layout.fillWidth: true
-                                            text: favorite ? "Favorite" : "Ready to play"
-                                            color: favorite ? "#5ee7c6" : "#91a8b5"
-                                            font.pixelSize: 12
-                                        }
+                                            anchors.centerIn: parent
 
-                                        Label {
-                                            Layout.fillWidth: true
-                                            text: url
-                                            color: "#708792"
-                                            font.pixelSize: 11
-                                            elide: Text.ElideMiddle
+                                            text: "TV"
+
+                                            color: "#b9d4df"
+                                            font.weight: Font.Bold
+
+                                            visible: !logo || parent.children[0].status !== Image.Ready
                                         }
                                     }
 
-                                    MouseArea {
-                                        id: mouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                        onClicked: function(mouseEvent) {
-                                            if (mouseEvent.button === Qt.RightButton) {
-                                                channelMenu.selectedIndex = index
-                                                channelMenu.popup()
-                                            } else {
-                                                root.openChannelInfo(index)
-                                            }
-                                        }
-                                        onPressAndHold: {
-                                            channelMenu.selectedIndex = index
-                                            channelMenu.popup()
-                                        }
+                                    Label {
+                                        width: parent.width - 62
+
+                                        text: name
+
+                                        color: "#e7f4fb"
+
+                                        font.pixelSize: 16
+                                        font.weight: Font.DemiBold
+
+                                        elide: Text.ElideRight
+
+                                        maximumLineCount: 2
+                                        wrapMode: Text.Wrap
                                     }
                                 }
+
+                                Label {
+                                    width: parent.width
+
+                                    text: favorite
+                                          ? "Favorite"
+                                          : "Ready to play"
+
+                                    color: favorite
+                                           ? "#5ee7c6"
+                                           : "#91a8b5"
+
+                                    font.pixelSize: 12
+                                }
+
+                                Label {
+                                    width: parent.width
+
+                                    text: url
+
+                                    color: "#708792"
+
+                                    font.pixelSize: 11
+
+                                    elide: Text.ElideMiddle
+                                }
                             }
+
+                            MouseArea {
+                                id: mouse
+
+                                anchors.fill: parent
+
+                                hoverEnabled: true
+
+                                acceptedButtons:
+                                    Qt.LeftButton | Qt.RightButton
+
+                                onClicked: function(mouseEvent) {
+                                    if (mouseEvent.button === Qt.RightButton) {
+                                        channelMenu.selectedIndex = index
+                                        channelMenu.popup()
+                                    } else {
+                                        root.openChannelInfo(index)
+                                    }
+                                }
+
+                                onPressAndHold: {
+                                    channelMenu.selectedIndex = index
+                                    channelMenu.popup()
+                                }
+                            }
+                        }
+
+                        ScrollBar.vertical: ScrollBar {
+                            policy: ScrollBar.AsNeeded
                         }
                     }
 
