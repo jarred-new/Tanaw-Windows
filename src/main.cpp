@@ -3,6 +3,7 @@
 #include <QGuiApplication>
 #include <QQmlContext>
 #include <QQmlApplicationEngine>
+#include <QIcon>
 
 int main(int argc, char *argv[])
 {
@@ -10,6 +11,7 @@ int main(int argc, char *argv[])
     app.setOrganizationName(QStringLiteral("Tanaw"));
     app.setApplicationName(QStringLiteral("Tanaw"));
     app.setApplicationDisplayName(QStringLiteral("Tanaw"));
+    app.setWindowIcon(QIcon(QStringLiteral(":/qt/qml/Tanaw/qml/favicon.ico")));
 
     TanawController controller;
     QQmlApplicationEngine engine;

@@ -35,7 +35,16 @@ qt_add_qml_module(Tanaw
     VERSION 1.0
     QML_FILES
         qml/main.qml
+        RESOURCES src/resource.rc qml/favicon.ico
 )
+
+# Windows Icon Configuration
+if(WIN32)
+    set(APP_ICON_RESOURCE_WINDOWS "src/resource.rc")
+
+    # Append the .rc file directly into your target sources
+    target_sources(Tanaw PRIVATE ${APP_ICON_RESOURCE_WINDOWS})
+endif()
 
 target_link_libraries(Tanaw PRIVATE
     Qt6::Core

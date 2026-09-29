@@ -15,6 +15,11 @@ ApplicationWindow {
     title: playerVisible ? "Tanaw — " + currentChannelName : "Tanaw"
     color: "#0d141b"
     flags: Qt.Window | (alwaysOnTop ? Qt.WindowStaysOnTopHint : 0)
+
+    Component.onCompleted: {
+        root.Window.window.setIcon("qrc:/qt/qml/Tanaw/qml/favicon.ico")
+    }
+
     Material.theme: Material.Dark
     Material.accent: Material.Cyan
 
