@@ -715,12 +715,5 @@ ApplicationWindow {
             interval: 3000
             onTriggered: channelInfoToast.close()
         }
-
-        function show(number, name, url) {
-            channelNumber = String(number)
-            channelName = name
-            channelUrl = url
-            open()
-        }
     }
 }
