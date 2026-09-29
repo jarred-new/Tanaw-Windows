@@ -447,7 +447,7 @@ ApplicationWindow {
                         Button {
                             Layout.preferredWidth: 60
                             Layout.preferredHeight: 60
-                            text: player.playbackState === MediaPlayer.PlayingState ? "Ⅱ" : "▶"
+                            text: player.playbackState === MediaPlayer.PlayingState ? "\u23F8" : "\u25B6"
                             Accessible.name: player.playbackState === MediaPlayer.PlayingState ? "Pause" : "Play"
                             onClicked: {
                                 if (player.playbackState === MediaPlayer.PlayingState)
