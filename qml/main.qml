@@ -72,6 +72,13 @@ ApplicationWindow {
         comfirmQuitDialog.open()
     }
 
+    Shortcut {
+        sequence: "Escape"
+        context: Qt.WindowShortcut
+        enabled: root.playerVisible && root.visibility === Window.FullScreen
+        onActivated: root.showNormal()
+    }
+
     Connections {
         target: controller
         function onNotification(message) {
@@ -361,7 +368,7 @@ ApplicationWindow {
             VideoOutput {
                 id: videoOutput
                 anchors.fill: parent
-                anchors.bottomMargin: playerControls.height
+                anchors.bottomMargin: playerControls.visible ? playerControls.height : 0
                 fillMode: VideoOutput.PreserveAspectFit
             }
 
@@ -714,6 +721,20 @@ ApplicationWindow {
             id: channelInfoToastTimer
             interval: 3000
             onTriggered: channelInfoToast.close()
+        }
+    }
+
+    onVisibilityChanged: {
+        if (root.visibility == Window.FullScreen) {
+            if (playerVisible == true) {
+                playerControls.visible = false
+                root.showNotification("Press ESC to exit fullscreen...")
+            }
+        }
+        else if (root.visibility == Window.Windowed) {
+            if (playerVisible == true) {
+                playerControls.visible = true
+            }
         }
     }
 }
