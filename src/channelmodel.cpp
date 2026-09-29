@@ -60,8 +60,10 @@ void ChannelModel::setFilterText(const QString &text)
         return;
     }
 
+    beginResetModel();
     m_filterText = text;
     rebuildVisibleRows();
+    endResetModel();
     emit filterTextChanged();
 }
 
