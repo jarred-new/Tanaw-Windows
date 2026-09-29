@@ -68,6 +68,10 @@ ApplicationWindow {
             root.showNormal()
     }
 
+    function closePlayerPrompt() {
+        comfirmQuitDialog.open()
+    }
+
     Connections {
         target: controller
         function onNotification(message) {
@@ -89,7 +93,7 @@ ApplicationWindow {
         }
         onMediaStatusChanged: {
             if (mediaStatus === MediaPlayer.LoadedMedia
-                    || mediaStatus === MediaPlayer.BufferedMedia) {
+                    /* || mediaStatus === MediaPlayer.BufferedMedia */) {
                 //root.showNotification(currentChannelName + " is ready")
                 root.showChannelInfoToast(currentChannelIndex, currentChannelName, currentStreamUrl);
             }
@@ -387,7 +391,7 @@ ApplicationWindow {
 
                     Button {
                         text: "Back"
-                        onClicked: root.closePlayer()
+                        onClicked: root.closePlayerPrompt()
                     }
 
                     Label {
@@ -578,6 +582,34 @@ ApplicationWindow {
                     highlighted: true
                     onClicked: {
                         controller.removeChannel(removeDialog.channelIndex)
+                        removeDialog.close()
+                    }
+                }
+            }
+        }
+    }
+
+    Dialog {
+        id: comfirmQuitDialog
+        title: "Are you sure to stop?"
+        modal: true
+        anchors.centerIn: parent
+        standardButtons: Dialog.NoButton
+
+        ColumnLayout {
+            width: 360
+            spacing: 14
+            RowLayout {
+                Layout.alignment: Qt.AlignRight
+                Button {
+                    text: "No"
+                    onClicked: removeDialog.close()
+                }
+                Button {
+                    text: "Yes"
+                    highlighted: true
+                    onClicked: {
+                        root.closePlayer()
                         removeDialog.close()
                     }
                 }
