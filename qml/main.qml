@@ -597,20 +597,20 @@ ApplicationWindow {
         standardButtons: Dialog.NoButton
 
         ColumnLayout {
-            width: 360
-            spacing: 14
+            width: 100
+            spacing: 2
             RowLayout {
                 Layout.alignment: Qt.AlignRight
                 Button {
                     text: "No"
-                    onClicked: removeDialog.close()
+                    onClicked: comfirmQuitDialog.close()
                 }
                 Button {
                     text: "Yes"
                     highlighted: true
                     onClicked: {
                         root.closePlayer()
-                        removeDialog.close()
+                        comfirmQuitDialog.close()
                     }
                 }
             }
