@@ -30,6 +30,13 @@ ApplicationWindow {
         toast.open()
     }
 
+    function showChannelInfoToast(index, name, url) {
+        channelInfoToast.channelNumber = index
+        channelInfoToast.channelName = name
+        channelInfoToast.channelUrl = url
+        channelInfoToast.open()
+    }
+
     function openChannel(row) {
         const info = controller.channelInfo(row)
         if (!info.url) {
@@ -83,7 +90,8 @@ ApplicationWindow {
         onMediaStatusChanged: {
             if (mediaStatus === MediaPlayer.LoadedMedia
                     || mediaStatus === MediaPlayer.BufferedMedia) {
-                root.showNotification(currentChannelName + " is ready")
+                //root.showNotification(currentChannelName + " is ready")
+                root.showChannelInfoToast(currentChannelIndex, currentChannelName, currentStreamUrl);
             }
         }
     }
@@ -598,6 +606,89 @@ ApplicationWindow {
             id: toastTimer
             interval: 3000
             onTriggered: toast.close()
+        }
+    }
+
+    
+    Popup {
+        id: channelInfoToast
+
+        property string channelNumber: "0"
+        property string channelName: "Name"
+        property string channelUrl: "Url"
+
+        parent: Overlay.overlay
+
+        x: (parent.width - width) / 2
+        y: parent.height - height - 28
+
+        width: Math.min(parent.width - 32, 400)
+        padding: 18
+
+        closePolicy: Popup.NoAutoClose
+        modal: false
+        dim: false
+
+        background: Rectangle {
+            radius: 12
+            color: "#263f4d"
+            border.color: "#4d6d7c"
+        }
+
+        contentItem: Row {
+            spacing: 8
+
+            Text {
+                id: channelNumberLabel
+
+                text: channelInfoToast.channelNumber
+                color: "#e7f4fb"
+                font.pixelSize: 16
+                font.bold: true
+
+                padding: 12
+
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Column {
+                spacing: 4
+
+                anchors.verticalCenter: parent.verticalCenter
+
+                Text {
+                    text: channelInfoToast.channelName
+                    color: "#e7f4fb"
+                    font.pixelSize: 12
+
+                    width: channelInfoToast.width - 110
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    text: channelInfoToast.channelUrl
+                    color: "#b8cbd5"
+                    font.pixelSize: 8
+
+                    width: channelInfoToast.width - 110
+                    elide: Text.ElideRight
+                }
+            }
+        }
+
+        onOpened: channelInfoToastTimer.restart()
+
+        Timer {
+            id: channelInfoToastTimer
+            interval: 3000
+            onTriggered: channelInfoToast.close()
+        }
+
+        function show(number, name, url) {
+            channelNumber = String(number)
+            channelName = name
+            channelUrl = url
+            open()
         }
     }
 }
