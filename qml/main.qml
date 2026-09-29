@@ -23,11 +23,19 @@ ApplicationWindow {
     property string currentChannelName: ""
     property string currentStreamUrl: ""
     property int currentChannelIndex: -1
+    property bool playbackControlsVisible: true
     property var controller: tanawController
 
     function showNotification(message) {
         toast.message = message
         toast.open()
+    }
+
+    function formatPlaybackTime(milliseconds) {
+        const totalSeconds = Math.floor(milliseconds / 1000)
+        const minutes = Math.floor(totalSeconds / 60)
+        const seconds = totalSeconds % 60
+        return minutes + ":" + (seconds < 10 ? "0" : "") + seconds
     }
 
     function showChannelInfoToast(index, name, url) {
@@ -48,6 +56,7 @@ ApplicationWindow {
         currentStreamUrl = info.url
         player.source = info.url
         player.play()
+        playbackControlsVisible = true
         playerVisible = true
     }
 
@@ -103,6 +112,14 @@ ApplicationWindow {
                     /* || mediaStatus === MediaPlayer.BufferedMedia */) {
                 //root.showNotification(currentChannelName + " is ready")
                 root.showChannelInfoToast(currentChannelIndex, currentChannelName, currentStreamUrl);
+            }
+        }
+        onPlaybackStateChanged: {
+            if (playbackState === MediaPlayer.PlayingState) {
+                playbackControlsTimer.restart()
+            } else {
+                playbackControlsTimer.stop()
+                root.playbackControlsVisible = true
             }
         }
     }
@@ -382,6 +399,116 @@ ApplicationWindow {
                 font.pixelSize: 18
             }
 
+            MouseArea {
+                anchors.fill: videoOutput
+                z: 1
+                onClicked: {
+                    root.playbackControlsVisible = !root.playbackControlsVisible
+                    if (root.playbackControlsVisible && player.playbackState === MediaPlayer.PlayingState)
+                        playbackControlsTimer.restart()
+                    else
+                        playbackControlsTimer.stop()
+                }
+            }
+
+            Rectangle {
+                id: playbackControlPanel
+                anchors.left: videoOutput.left
+                anchors.right: videoOutput.right
+                anchors.bottom: videoOutput.bottom
+                anchors.leftMargin: 32
+                anchors.rightMargin: 32
+                anchors.bottomMargin: 20
+                height: playbackLayout.implicitHeight + 24
+                radius: 12
+                color: "#d910171d"
+                border.color: "#405c6a"
+                visible: root.playbackControlsVisible
+                z: 2
+
+                ColumnLayout {
+                    id: playbackLayout
+                    anchors.fill: parent
+                    anchors.margins: 12
+                    spacing: 8
+
+                    RowLayout {
+                        Layout.alignment: Qt.AlignHCenter
+                        spacing: 24
+
+                        Button {
+                            text: "-10s"
+                            visible: player.seekable
+                            enabled: player.seekable
+                            Accessible.name: "Seek back 10 seconds"
+                            onClicked: player.position = Math.max(0, player.position - 10000)
+                        }
+
+                        Button {
+                            Layout.preferredWidth: 60
+                            Layout.preferredHeight: 60
+                            text: player.playbackState === MediaPlayer.PlayingState ? "Ⅱ" : "▶"
+                            Accessible.name: player.playbackState === MediaPlayer.PlayingState ? "Pause" : "Play"
+                            onClicked: {
+                                if (player.playbackState === MediaPlayer.PlayingState)
+                                    player.pause()
+                                else
+                                    player.play()
+                            }
+                        }
+
+                        Button {
+                            text: "+10s"
+                            visible: player.seekable
+                            enabled: player.seekable
+                            Accessible.name: "Seek forward 10 seconds"
+                            onClicked: player.position = Math.min(player.duration, player.position + 10000)
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        visible: player.seekable && player.duration > 0
+
+                        Label {
+                            text: root.formatPlaybackTime(player.position)
+                            color: "#e7f4fb"
+                        }
+
+                        Slider {
+                            Layout.fillWidth: true
+                            from: 0
+                            to: Math.max(1, player.duration)
+                            value: player.position
+                            onMoved: player.position = value
+                        }
+
+                        Label {
+                            text: root.formatPlaybackTime(player.duration)
+                            color: "#e7f4fb"
+                        }
+                    }
+
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        visible: !player.seekable
+                        text: "LIVE"
+                        color: "#ff6b63"
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
+                    }
+                }
+            }
+
+            Timer {
+                id: playbackControlsTimer
+                interval: 4000
+                onTriggered: {
+                    if (player.playbackState === MediaPlayer.PlayingState)
+                        root.playbackControlsVisible = false
+                }
+            }
+
             Rectangle {
                 id: playerControls
                 anchors.left: parent.left
@@ -425,15 +552,6 @@ ApplicationWindow {
                         }
                     }
 
-                    Button {
-                        text: player.playbackState === MediaPlayer.PlayingState ? "Pause" : "Play"
-                        onClicked: {
-                            if (player.playbackState === MediaPlayer.PlayingState)
-                                player.pause()
-                            else
-                                player.play()
-                        }
-                    }
                 }
             }
         }
