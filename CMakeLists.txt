@@ -47,6 +47,36 @@ if(WIN32)
     target_sources(Tanaw PRIVATE ${APP_ICON_RESOURCE_WINDOWS})
 endif()
 
+# Disables AVX/AVX2 emit
+
+# MSVC
+if(MSVC)
+    # Ensure no modern vector extensions are injected
+    # MSVC targets SSE2 by default on x64, which is safe for Box64.
+    # If your project explicitly sets /arch:AVX, we can override or strip it:
+    string(REPLACE "/arch:AVX2" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    string(REPLACE "/arch:AVX" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    
+    # Or, explicitly force standard x64 compilation behavior
+    add_compile_options(/arch:SSE2) 
+endif()
+
+# MINGW / GCC / Clang
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Explicitly turn off AVX, AVX2, and FMA
+    add_compile_options(
+        -mno-avx
+        -mno-avx2
+        -mno-fma
+        -mno-avx512f
+    )
+    
+    # Strictly avoid "-march=native", which would optimize for your host CPU!
+    # Instead, force a generic or standard x86-64 target architecture
+    add_compile_options(-march=x86-64)
+endif()
+
+
 target_link_libraries(Tanaw PRIVATE
     Qt6::Core
     Qt6::Gui
