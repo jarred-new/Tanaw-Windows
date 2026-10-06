@@ -9,6 +9,8 @@ Tanaw is a Qt Quick 6.8 desktop IPTV playlist browser and player, ported from th
 - Parse channel names, stream URLs, and `tvg-logo` artwork.
 - Persist the playlist and channel list with `QSettings`.
 - Search channels by name.
+- Filter the library to Favorites.
+- Import and export channel lists as JSON.
 - Play streams with Qt Multimedia.
 - Fullscreen playback and a Windows-friendly “always on top” mode.
 - Channel details, favorites, copy URL, share via the default mail app, and removal.

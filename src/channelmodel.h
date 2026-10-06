@@ -15,6 +15,7 @@ class ChannelModel final : public QAbstractListModel
 {
     Q_OBJECT
     Q_PROPERTY(QString filterText READ filterText WRITE setFilterText NOTIFY filterTextChanged)
+    Q_PROPERTY(bool favoritesOnly READ favoritesOnly WRITE setFavoritesOnly NOTIFY favoritesOnlyChanged)
 
 public:
     enum Role {
@@ -33,6 +34,8 @@ public:
 
     QString filterText() const;
     void setFilterText(const QString &text);
+    bool favoritesOnly() const;
+    void setFavoritesOnly(bool favoritesOnly);
 
     void setChannels(const QList<Channel> &channels);
     void removeAt(int row);
@@ -42,6 +45,7 @@ public:
 
 signals:
     void filterTextChanged();
+    void favoritesOnlyChanged();
 
 private:
     void rebuildVisibleRows();
@@ -49,4 +53,5 @@ private:
     QList<Channel> m_channels;
     QList<int> m_visibleRows;
     QString m_filterText;
+    bool m_favoritesOnly = false;
 };

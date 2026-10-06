@@ -4,6 +4,7 @@ import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtQuick.Window
 import QtMultimedia
+import QtQuick.Dialogs
 
 ApplicationWindow {
     id: root
@@ -169,6 +170,17 @@ ApplicationWindow {
                             placeholderText: "Search channels"
                             selectByMouse: true
                             onTextChanged: controller.channelModel.filterText = text
+                        }
+
+                        Button {
+                            text: controller.channelModel.favoritesOnly ? "All channels" : "Favorites"
+                            onClicked: controller.channelModel.favoritesOnly =
+                                           !controller.channelModel.favoritesOnly
+                        }
+
+                        Button {
+                            text: "Import / Export"
+                            onClicked: playlistFilesMenu.popup()
                         }
 
                         Button {
@@ -354,21 +366,25 @@ ApplicationWindow {
                     Column {
                         anchors.centerIn: parent
                         spacing: 8
-                        visible: controller.channelCount === 0
+                        visible: channelGrid.count === 0
 
                         Label {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: controller.channelModel.filterText.length > 0
-                                  ? "No matching channels" : "No channels yet"
+                            text: controller.channelModel.favoritesOnly
+                                  ? "No favorite channels"
+                                  : (controller.channelModel.filterText.length > 0
+                                     ? "No matching channels" : "No channels yet")
                             color: "#d7e8ef"
                             font.pixelSize: 21
                             font.weight: Font.DemiBold
                         }
                         Label {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: controller.channelModel.filterText.length > 0
-                                  ? "Try a different search"
-                                  : "Add an M3U playlist to start watching"
+                            text: controller.channelModel.favoritesOnly
+                                  ? "Add channels to Favorites from the channel menu"
+                                  : (controller.channelModel.filterText.length > 0
+                                     ? "Try a different search"
+                                     : "Add an M3U playlist to start watching")
                             color: "#91a8b5"
                         }
                     }
@@ -555,6 +571,35 @@ ApplicationWindow {
                 }
             }
         }
+    }
+
+    Menu {
+        id: playlistFilesMenu
+        MenuItem {
+            text: "Import channel list..."
+            onTriggered: importChannelsDialog.open()
+        }
+        MenuItem {
+            text: "Export channel list..."
+            onTriggered: exportChannelsDialog.open()
+        }
+    }
+
+    FileDialog {
+        id: importChannelsDialog
+        title: "Import Tanaw channel list"
+        fileMode: FileDialog.OpenFile
+        nameFilters: ["JSON channel lists (*.json)", "All files (*)"]
+        onAccepted: controller.importChannels(selectedFile)
+    }
+
+    FileDialog {
+        id: exportChannelsDialog
+        title: "Export Tanaw channel list"
+        fileMode: FileDialog.SaveFile
+        currentFile: "channels.json"
+        nameFilters: ["JSON channel lists (*.json)"]
+        onAccepted: controller.exportChannels(selectedFile)
     }
 
     Menu {

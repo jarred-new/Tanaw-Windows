@@ -4,6 +4,7 @@
 
 #include <QObject>
 #include <QNetworkAccessManager>
+#include <QUrl>
 #include <QVariantMap>
 
 class QNetworkReply;
@@ -33,6 +34,8 @@ public:
     Q_INVOKABLE void toggleFavorite(int row);
     Q_INVOKABLE void copyStreamUrl(const QString &url);
     Q_INVOKABLE void shareStreamUrl(const QString &url);
+    Q_INVOKABLE void importChannels(const QUrl &fileUrl);
+    Q_INVOKABLE void exportChannels(const QUrl &fileUrl);
 
 signals:
     void statusTextChanged();

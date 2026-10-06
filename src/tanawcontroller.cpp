@@ -2,12 +2,14 @@
 
 #include <QClipboard>
 #include <QDesktopServices>
+#include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QRegularExpression>
+#include <QSaveFile>
 #include <QSettings>
 #include <QUrl>
 #include <QUrlQuery>
@@ -131,6 +133,97 @@ void TanawController::shareStreamUrl(const QString &url)
     } else {
         emit notification(QStringLiteral("Opened your default mail app"));
     }
+}
+
+void TanawController::importChannels(const QUrl &fileUrl)
+{
+    if (!fileUrl.isLocalFile()) {
+        emit notification(QStringLiteral("Choose a local JSON file"));
+        return;
+    }
+
+    QFile file(fileUrl.toLocalFile());
+    if (!file.open(QIODevice::ReadOnly)) {
+        emit notification(QStringLiteral("Unable to open file: %1").arg(file.errorString()));
+        return;
+    }
+
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(file.readAll(), &parseError);
+    if (parseError.error != QJsonParseError::NoError || !document.isArray()) {
+        const QString reason = parseError.error != QJsonParseError::NoError
+                                   ? parseError.errorString()
+                                   : QStringLiteral("Expected a JSON array of channels");
+        emit notification(QStringLiteral("Unable to import channels: %1").arg(reason));
+        return;
+    }
+
+    QList<Channel> channels;
+    const QJsonArray array = document.array();
+    for (qsizetype i = 0; i < array.size(); ++i) {
+        if (!array.at(i).isObject()) {
+            emit notification(QStringLiteral("Unable to import channels: item %1 is not an object")
+                                  .arg(i + 1));
+            return;
+        }
+
+        const QJsonObject object = array.at(i).toObject();
+        if (!object.value(QStringLiteral("name")).isString()
+            || !object.value(QStringLiteral("url")).isString()
+            || (!object.value(QStringLiteral("logo")).isUndefined()
+                && !object.value(QStringLiteral("logo")).isString())
+            || (!object.value(QStringLiteral("favorite")).isUndefined()
+                && !object.value(QStringLiteral("favorite")).isBool())) {
+            emit notification(QStringLiteral("Unable to import channels: item %1 has invalid fields")
+                                  .arg(i + 1));
+            return;
+        }
+
+        channels.append(Channel{
+            object.value(QStringLiteral("name")).toString(),
+            object.value(QStringLiteral("logo")).toString(),
+            object.value(QStringLiteral("url")).toString(),
+            object.value(QStringLiteral("favorite")).toBool()
+        });
+    }
+
+    m_channelModel.setChannels(channels);
+    savePlaylist();
+    emit channelCountChanged();
+    setStatusText(QStringLiteral("%1 channels loaded").arg(channels.size()));
+    emit notification(QStringLiteral("Channel list imported"));
+}
+
+void TanawController::exportChannels(const QUrl &fileUrl)
+{
+    if (!fileUrl.isLocalFile()) {
+        emit notification(QStringLiteral("Choose a local file"));
+        return;
+    }
+
+    QJsonArray array;
+    for (const Channel &channel : m_channelModel.channels()) {
+        array.append(QJsonObject{
+            {QStringLiteral("name"), channel.name},
+            {QStringLiteral("logo"), channel.logo},
+            {QStringLiteral("url"), channel.url},
+            {QStringLiteral("favorite"), channel.favorite}
+        });
+    }
+
+    QSaveFile file(fileUrl.toLocalFile());
+    if (!file.open(QIODevice::WriteOnly)) {
+        emit notification(QStringLiteral("Unable to save file: %1").arg(file.errorString()));
+        return;
+    }
+
+    const QByteArray json = QJsonDocument(array).toJson(QJsonDocument::Indented);
+    if (file.write(json) != json.size() || !file.commit()) {
+        emit notification(QStringLiteral("Unable to save file: %1").arg(file.errorString()));
+        return;
+    }
+
+    emit notification(QStringLiteral("Channel list exported"));
 }
 
 void TanawController::loadSavedPlaylist()

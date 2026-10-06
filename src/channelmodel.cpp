@@ -67,6 +67,24 @@ void ChannelModel::setFilterText(const QString &text)
     emit filterTextChanged();
 }
 
+bool ChannelModel::favoritesOnly() const
+{
+    return m_favoritesOnly;
+}
+
+void ChannelModel::setFavoritesOnly(bool favoritesOnly)
+{
+    if (m_favoritesOnly == favoritesOnly) {
+        return;
+    }
+
+    beginResetModel();
+    m_favoritesOnly = favoritesOnly;
+    rebuildVisibleRows();
+    endResetModel();
+    emit favoritesOnlyChanged();
+}
+
 void ChannelModel::setChannels(const QList<Channel> &channels)
 {
     beginResetModel();
@@ -101,6 +119,13 @@ void ChannelModel::toggleFavorite(int row)
 
     const int sourceRow = m_visibleRows.at(row);
     m_channels[sourceRow].favorite = !m_channels.at(sourceRow).favorite;
+    if (m_favoritesOnly) {
+        beginResetModel();
+        rebuildVisibleRows();
+        endResetModel();
+        return;
+    }
+
     const QModelIndex changed = index(row);
     emit dataChanged(changed, changed, {FavoriteRole});
 }
@@ -125,8 +150,9 @@ void ChannelModel::rebuildVisibleRows()
     const QString query = m_filterText.trimmed();
 
     for (int i = 0; i < m_channels.size(); ++i) {
-        if (query.isEmpty()
-            || m_channels.at(i).name.contains(query, Qt::CaseInsensitive)) {
+        const Channel &channel = m_channels.at(i);
+        if ((!m_favoritesOnly || channel.favorite)
+            && (query.isEmpty() || channel.name.contains(query, Qt::CaseInsensitive))) {
             m_visibleRows.append(i);
         }
     }
