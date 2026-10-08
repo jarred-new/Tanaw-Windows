@@ -480,38 +480,54 @@ ApplicationWindow {
                             Accessible.name: "Seek forward 10 seconds"
                             onClicked: player.position = Math.min(player.duration, player.position + 10000)
                         }
-                    }
 
-                    RowLayout {
-                        Layout.fillWidth: true
-                        visible: player.seekable && player.duration > 0
-
-                        Label {
-                            text: root.formatPlaybackTime(player.position)
-                            color: "#e7f4fb"
-                        }
-
-                        Slider {
+                        RowLayout {
                             Layout.fillWidth: true
-                            from: 0
-                            to: Math.max(1, player.duration)
-                            value: player.position
-                            onMoved: player.position = value
+                            //visible: player.seekable && player.duration > 0
+
+                            Label {
+                                text: root.formatPlaybackTime(player.position)
+                                color: "#e7f4fb"
+                            }
+
+                            Slider {
+                                Layout.fillWidth: true
+                                from: 0
+                                to: Math.max(1, player.duration)
+                                value: player.position
+                                onMoved: player.position = value
+                            }
+
+                            Label {
+                                text: root.formatPlaybackTime(player.duration)
+                                color: "#e7f4fb"
+                            }
                         }
 
-                        Label {
-                            text: root.formatPlaybackTime(player.duration)
-                            color: "#e7f4fb"
+                        Button {
+                            text: "Audio"
+                            Accessible.name: "Audio track selection"
+                            onClicked: audioTrackMenu.popup()
                         }
-                    }
 
-                    Label {
-                        Layout.alignment: Qt.AlignHCenter
-                        visible: !player.seekable
-                        text: "LIVE"
-                        color: "#ff6b63"
-                        font.pixelSize: 11
-                        font.weight: Font.Bold
+                        Button {
+                            text: "Captions"
+                            Accessible.name: "Caption track selection"
+                            onClicked: captionsMenu.popup()
+                        }
+
+                        Button {
+                            id: fullscreenButton
+                            text: "\u2922"
+                            Accessible.name: "Fullscreen"
+                            onClicked: {
+                                if (root.visibility === Window.FullScreen) {
+                                    root.showNormal()
+                                } else {
+                                    root.showFullScreen()
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -544,32 +560,82 @@ ApplicationWindow {
                         onClicked: root.closePlayerPrompt()
                     }
 
-                    Label {
-                        Layout.fillWidth: true
-                        text: root.currentChannelName
-                        color: "#e7f4fb"
-                        font.pixelSize: 18
-                        font.weight: Font.DemiBold
-                        elide: Text.ElideRight
-                    }
-
-                    Button {
-                        text: root.alwaysOnTop ? "Always on top: On" : "Always on top"
-                        onClicked: root.alwaysOnTop = !root.alwaysOnTop
-                    }
-
-                    Button {
-                        text: root.visibility === Window.FullScreen ? "Windowed" : "Fullscreen"
-                        onClicked: {
-                            if (root.visibility === Window.FullScreen)
-                                root.showNormal()
-                            else
-                                root.showFullScreen()
-                        }
-                    }
-
+                    // Label {
+                    //     Layout.alignment: Qt.AlignHCenter
+                    //     visible: player.mediaStatus === MediaPlayer.BufferedMedia
+                    //     text: "LIVE"
+                    //     color: "#ff6b63"
+                    //     font.pixelSize: 11
+                    //     font.weight: Font.Bold
+                    // }
                 }
             }
+        }
+    }
+
+    Menu {
+        id: audioTrackMenu
+
+        MenuItem {
+            text: "No audio tracks available"
+            enabled: false
+            visible: player.audioTracks.length === 0
+        }
+
+        Instantiator {
+            model: player.audioTracks
+
+            delegate: MenuItem {
+                required property int index
+                required property var modelData
+
+                readonly property string trackLanguage:
+                    modelData.stringValue(MediaMetaData.Language)
+                readonly property string trackTitle:
+                    modelData.stringValue(MediaMetaData.Title)
+
+                text: "Audio track " + (index + 1) + ": "
+                      + (trackLanguage || trackTitle || "Unknown language")
+                checkable: true
+                checked: player.activeAudioTrack === index
+                onTriggered: player.activeAudioTrack = index
+            }
+
+            onObjectAdded: (index, object) => audioTrackMenu.insertItem(index + 1, object)
+            onObjectRemoved: (index, object) => audioTrackMenu.removeItem(object)
+        }
+    }
+
+    Menu {
+        id: captionsMenu
+
+        MenuItem {
+            text: "No captions available"
+            enabled: false
+            visible: player.captions.length === 0
+        }
+
+        Instantiator {
+            model: player.captions
+
+            delegate: MenuItem {
+                required property int index
+                required property var modelData
+
+                readonly property string trackLanguage:
+                    modelData.stringValue(MediaMetaData.Language)
+                readonly property string trackTitle:
+                    modelData.stringValue(MediaMetaData.Title)
+
+                text: "Caption track " + (index + 1) + ": "
+                      + (trackLanguage || trackTitle || "Unknown language")
+                checkable: true
+                checked: player.activeCaptions === index
+                onTriggered: player.activeCaptions = index
+            }
+
+            onObjectAdded: (index, object) => captionsMenu.insertItem(index + 1, object)
+            onObjectRemoved: (index, object) => captionsMenu.removeItem(object)
         }
     }
 
@@ -891,12 +957,14 @@ ApplicationWindow {
         if (root.visibility == Window.FullScreen) {
             if (playerVisible == true) {
                 playerControls.visible = false
+                fullscreenButton.text = "\u27C0"
                 root.showNotification("Press ESC to exit fullscreen...")
             }
         }
         else if (root.visibility == Window.Windowed) {
             if (playerVisible == true) {
                 playerControls.visible = true
+                fullscreenButton.text = "\u2922"
             }
         }
     }
