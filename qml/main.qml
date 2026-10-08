@@ -26,6 +26,7 @@ ApplicationWindow {
     property int currentChannelIndex: -1
     property bool playbackControlsVisible: true
     property var controller: tanawController
+    property bool verifyQuit: false
 
     function showNotification(message) {
         toast.message = message
@@ -80,6 +81,15 @@ ApplicationWindow {
 
     function closePlayerPrompt() {
         comfirmQuitDialog.open()
+    }
+
+    onClosing: function(closeEvent) {
+        if (!verifyQuit) {
+            closeEvent.accepted = false;
+            comfirmQuitDialog_App.open();
+        } else {
+            closeEvent.accepted = true;
+        }
     }
 
     Shortcut {
@@ -847,6 +857,34 @@ ApplicationWindow {
                     onClicked: {
                         root.closePlayer()
                         comfirmQuitDialog.close()
+                    }
+                }
+            }
+        }
+    }
+
+    Dialog {
+        id: comfirmQuitDialog_App
+        title: "Are you sure to quit?"
+        modal: true
+        anchors.centerIn: parent
+        standardButtons: Dialog.NoButton
+
+        ColumnLayout {
+            width: 100
+            spacing: 2
+            RowLayout {
+                Layout.alignment: Qt.AlignRight
+                Button {
+                    text: "No"
+                    onClicked: comfirmQuitDialog_App.close()
+                }
+                Button {
+                    text: "Yes"
+                    highlighted: true
+                    onClicked: {
+                        verifyQuit = true
+                        Qt.quit()
                     }
                 }
             }
